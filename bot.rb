@@ -1,4 +1,4 @@
-# encoding: utf-8
+# frozen_string_literal: true
 
 require 'discordrb'
 require 'dotenv'
@@ -10,24 +10,23 @@ Dotenv.load
 class User
   # 初期化
   def initialize
-    @user_status = {'no_user'=>'you are exit'}
+    @user_status = { 'no_user' => { 'status' => 'offline', 'mute' => 'false' } }
   end
 
   # userの状態を返す
   def getUserStatus(user_name)
-    if @user_status.has_key?(user_name)
-      return @user_status[user_name]
-    end
-    return 'offline'
+    return @user_status[user_name] if @user_status.key?(user_name)
+
+    { 'status' => 'offline' }
   end
 
   # userの状態を更新
-  def setUserStatus(user_name, status)
-    @user_status[user_name] = status
+  def setUserStatus(user_name, status, mute)
+    @user_status[user_name] = {} unless @user_status.key?(user_name)
+    @user_status[user_name]['status'] = status
+    @user_status[user_name]['mute'] = mute.to_s
     # offlineの時は削除
-    if status == 'offline'
-      @user_status.delete(user_name)
-    end
+    @user_status.delete(user_name) if status == 'offline'
   end
 end
 
@@ -46,10 +45,22 @@ bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, pr
 bot.voice_state_update do |event|
   # イベントが発火したボイスチャンネルデータを取得
   channel = event.channel
+
   # 発火させたユーザー名を取得
-  user = event.user.name
+  user = event.user.name.to_s
+
   # botは削除
   break if user == bot_user_name
+
+  # ミュートの状態を取得
+  mute_status = event.self_mute.to_s
+  # 元のミュート状態を取得
+  before_mute = user_session.getUserStatus(user)['mute'].to_s
+  # 現状態を上書き
+  user_session.setUserStatus(user, 'online', mute_status)
+  # 元の状態が遷移した時は無視
+  break if before_mute != mute_status
+
   # もしデータが空だと抜けていったチャンネルを取得
   if channel.nil?
     # チャンネル名を取得
@@ -71,12 +82,12 @@ bot.presence do |event|
   # 遷移した状態の取得
   state = event.status.to_s
   # 元の状態を取得
-  before_status = user_session.getUserStatus(user)
+  before_status = user_session.getUserStatus(user)['status'].to_s
   # 状態を更新
-  user_session.setUserStatus(user, state).to_s
+  user_session.setUserStatus(user, state, false)
   p "#{user} is #{before_status} => #{state}"
   # 元の状態がofflineの時通知
-  if (before_status == 'offline' || state == 'offline')
+  if before_status == 'offline' || state == 'offline'
     # 通知センターに投下
     bot.send_message(inform_channel, "#{user} is **#{state}**")
   end

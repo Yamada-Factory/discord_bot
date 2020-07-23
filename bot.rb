@@ -2,6 +2,9 @@
 
 require 'discordrb'
 require 'dotenv'
+require 'net/http'
+require 'uri'
+require 'json'
 
 # load .env
 Dotenv.load
@@ -38,6 +41,7 @@ token = ENV['TOKEN_KEY']
 client_id = ENV['CLIENT_ID']
 inform_channel = ENV['INFORM_CHANNEL_ID']
 bot_user_name = ENV['BOT_NAME']
+github_token = ENV['GITHUB_TOKEN']
 
 bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, prefix: '/'
 
@@ -90,6 +94,25 @@ bot.presence do |event|
   if before_status == 'offline' || state == 'offline'
     # 通知センターに投下
     bot.send_message(inform_channel, "#{user} is **#{state}**")
+  end
+end
+
+# /deploy <branch>で起動
+bot.command :deploy do |event, branch|
+  uri = URI.parse('https://api.github.com/repos/nitncwind-org/gen3/actions/workflows/1977992/dispatches')
+  request = Net::HTTP::Post.new(uri)
+  request['Authorization'] = "token #{github_token}"
+  request['Accept'] = 'application/vnd.github.v3:json'
+  request.body = JSON.dump(
+    'ref' => branch
+  )
+
+  req_options = {
+    use_ssl: uri.scheme == 'https'
+  }
+
+  response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
+    http.request(request)
   end
 end
 

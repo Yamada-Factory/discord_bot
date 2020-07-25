@@ -124,5 +124,6 @@ bot.command :deploy do |event, branch|
   if response.code == '204'
     bot.send_message('702178566242172928', "devに `#{branch}`  をデプロイすんで")
   end
+end
 
 bot.run

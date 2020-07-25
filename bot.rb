@@ -102,9 +102,6 @@ bot.command :deploy do |event, branch|
   # developチャンネル以外は弾く
   break if event.channel.name != 'develop'
 
-  # デプロイ通知
-  bot.send_message('702178566242172928', "devに `#{branch}`  をデプロイすんで")
-
   uri = URI.parse('https://api.github.com/repos/nitncwind-org/gen3/actions/workflows/1977992/dispatches')
   request = Net::HTTP::Post.new(uri)
   request['Authorization'] = "token #{github_token}"
@@ -120,7 +117,12 @@ bot.command :deploy do |event, branch|
   response = Net::HTTP.start(uri.hostname, uri.port, req_options) do |http|
     http.request(request)
   end
+
   puts response.code
-end
+
+  # レスポンスが204ならデプロイ通知
+  if response.code == '204'
+    bot.send_message('702178566242172928', "devに `#{branch}`  をデプロイすんで")
+  end
 
 bot.run

@@ -79,24 +79,6 @@ bot.voice_state_update do |event|
   end
 end
 
-# 誰かの状態が変われば発火
-bot.presence do |event|
-  # ユーザー名の取得
-  user = event.user.name.to_s
-  # 遷移した状態の取得
-  state = event.status.to_s
-  # 元の状態を取得
-  before_status = user_session.getUserStatus(user)['status'].to_s
-  # 状態を更新
-  user_session.setUserStatus(user, state, false)
-  p "#{user} is #{before_status} => #{state}"
-  # 元の状態がofflineの時通知
-  if before_status == 'offline' || state == 'offline'
-    # 通知センターに投下
-    bot.send_message(inform_channel, "#{user} is **#{state}**")
-  end
-end
-
 # /deploy <branch>で起動
 bot.command :deploy do |event, branch|
   # developチャンネル以外は弾く

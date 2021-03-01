@@ -70,12 +70,12 @@ bot.voice_state_update do |event|
     # チャンネル名を取得
     channel_name = event.old_channel.name
     # 退出したことをinform_channelに通知
-    bot.send_message(inform_channel, "@everyone #{user} が #{channel_name}を出たで～")
+    bot.send_message(inform_channel, "#{user} が #{channel_name}を出たで～")
   else
     # チャンネル名を取得
     channel_name = event.channel.name
     # 入室したことをinform_channelに通知
-    bot.send_message(inform_channel, "@everyone #{user} が #{channel_name}に入ったで～")
+    bot.send_message(inform_channel, "#{user} が #{channel_name}に入ったで～")
   end
 end
 

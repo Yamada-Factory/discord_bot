@@ -84,7 +84,7 @@ bot.command :deploy do |event, branch|
   # developチャンネル以外は弾く
   break if event.channel.name != 'develop'
 
-  uri = URI.parse('https://api.github.com/repos/nitncwind-org/gen3/actions/workflows/1977992/dispatches')
+  uri = URI.parse('https://api.github.com/repos/nitncwind-org/v3/actions/workflows/1977992/dispatches')
   request = Net::HTTP::Post.new(uri)
   request['Authorization'] = "token #{github_token}"
   request['Accept'] = 'application/vnd.github.v3:json'

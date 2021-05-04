@@ -82,9 +82,9 @@ end
 # /deploy <branch>で起動
 bot.command :deploy do |event, branch|
   # developチャンネル以外は弾く
-  break if event.channel.name != 'develop'
+  break if event.channel.name != 'nitncwind-develop'
 
-  uri = URI.parse('https://api.github.com/repos/nitncwind-org/gen3/actions/workflows/1977992/dispatches')
+  uri = URI.parse('https://api.github.com/repos/nitncwind-org/v3/actions/workflows/1977992/dispatches')
   request = Net::HTTP::Post.new(uri)
   request['Authorization'] = "token #{github_token}"
   request['Accept'] = 'application/vnd.github.v3:json'
@@ -104,7 +104,7 @@ bot.command :deploy do |event, branch|
 
   # レスポンスが204ならデプロイ通知
   if response.code == '204'
-    bot.send_message('702178566242172928', "devに `#{branch}`  をデプロイすんで")
+    bot.send_message('738448323773595650', "devに `#{branch}`  をデプロイすんで")
   end
 end
 

@@ -54,7 +54,7 @@ bot.voice_state_update do |event|
   user = event.user.name.to_s
 
   # botは削除
-  break if user == bot_user_name
+  next if user == bot_user_name
 
   # ミュートの状態を取得
   mute_status = event.self_mute.to_s
@@ -63,7 +63,7 @@ bot.voice_state_update do |event|
   # 現状態を上書き
   user_session.setUserStatus(user, 'online', mute_status)
   # 元の状態が遷移した時は無視
-  break if before_mute != mute_status
+  next if before_mute != "" && before_mute != mute_status
 
   # もしデータが空だと抜けていったチャンネルを取得
   if channel.nil?

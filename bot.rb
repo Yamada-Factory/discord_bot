@@ -12,16 +12,16 @@ Dotenv.load
 class UserState
     # 初期化
     def initialize
-        @user_state = { 'no_user' => { 'isInVoice' => false, 'isMute' => false}}
+        @user_state = { 'no_user' => { 'voiceChannel' => nil, 'isMute' => false}}
     end
 
     def getUserState(user_name)
         return @user_state[user_name]
     end
 
-    def setUserState(user_name, isInVoice, isMute)
+    def setUserState(user_name, voiceChannel, isMute)
         @user_state[user_name] = {} unless @user_state.key?(user_name)
-        @user_state[user_name]['isInVoice'] = isInVoice
+        @user_state[user_name]['voiceChannel'] = voiceChannel
         @user_state[user_name]['isMute'] = isMute
     end
 end
@@ -44,7 +44,7 @@ bot.voice_state_update do |event|
     next if user_name == bot_user_name
 
     isMute = event.self_mute
-    beforeState = user_state.getUserState(user_name)
+    beforeState = user_state.getUserState(user_name).clone
 
     # 登録がなくて，初めての通知の時エントリーを登録
     if beforeState.nil?
@@ -56,15 +56,15 @@ bot.voice_state_update do |event|
     if channel.nil?
         channel_name = event.old_channel.name
         bot.send_message(inform_channel, "#{user_name} が #{channel_name}を出たで～")
-        user_state.setUserState(user_name, false, isMute)
+        user_state.setUserState(user_name, nil, isMute)
     else
-        user_state.setUserState(user_name, true, isMute)
+        channel_name = event.channel.name
+        user_state.setUserState(user_name, channel_name, isMute)
 
-        # isInVoiceのときはすでにボイスチャネルに入ってるので通知しない
-        next if !beforeState.nil? && beforeState['isInVoice']
+        # voiceChannelが現在のチャネルのときはすでにボイスチャネルに入ってるので通知しない
+        next if !beforeState.nil? && beforeState['voiceChannel'] == channel_name
 
         # それ以外の時は通知する
-        channel_name = event.channel.name
         bot.send_message(inform_channel, "#{user_name} が #{channel_name}に入ったで～")
     end
 end

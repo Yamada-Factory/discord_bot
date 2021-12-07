@@ -9,32 +9,24 @@ require 'json'
 # load .env
 Dotenv.load
 
-# ユーザのセッションを管理する
-class User
-  # 初期化
-  def initialize
-    @user_status = { 'no_user' => { 'status' => 'offline', 'mute' => 'false' } }
-  end
+class UserState
+    # 初期化
+    def initialize
+        @user_state = { 'no_user' => { 'voiceChannel' => nil, 'isMute' => false}}
+    end
 
-  # userの状態を返す
-  def getUserStatus(user_name)
-    return @user_status[user_name] if @user_status.key?(user_name)
+    def getUserState(user_name)
+        return @user_state[user_name]
+    end
 
-    { 'status' => 'offline' }
-  end
-
-  # userの状態を更新
-  def setUserStatus(user_name, status, mute)
-    @user_status[user_name] = {} unless @user_status.key?(user_name)
-    @user_status[user_name]['status'] = status
-    @user_status[user_name]['mute'] = mute.to_s
-    # offlineの時は削除
-    @user_status.delete(user_name) if status == 'offline'
-  end
+    def setUserState(user_name, voiceChannel, isMute)
+        @user_state[user_name] = {} unless @user_state.key?(user_name)
+        @user_state[user_name]['voiceChannel'] = voiceChannel
+        @user_state[user_name]['isMute'] = isMute
+    end
 end
 
-# controller
-user_session = User.new
+user_state = UserState.new
 
 # envより設定
 token = ENV['TOKEN_KEY']
@@ -47,36 +39,34 @@ bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, pr
 
 # 誰かがvoice channnelに出入りしたら発火
 bot.voice_state_update do |event|
-  # イベントが発火したボイスチャンネルデータを取得
-  channel = event.channel
+    user_name = event.user.name.to_s
 
-  # 発火させたユーザー名を取得
-  user = event.user.name.to_s
+    next if user_name == bot_user_name
 
-  # botは削除
-  next if user == bot_user_name
+    isMute = event.self_mute
+    beforeState = user_state.getUserState(user_name).clone
 
-  # ミュートの状態を取得
-  mute_status = event.self_mute.to_s
-  # 元のミュート状態を取得
-  before_mute = user_session.getUserStatus(user)['mute'].to_s
-  # 現状態を上書き
-  user_session.setUserStatus(user, 'online', mute_status)
-  # 元の状態が遷移した時は無視
-  next if before_mute != "" && before_mute != mute_status
+    # 登録がなくて，初めての通知の時エントリーを登録
+    if beforeState.nil?
+        user_state.setUserState(user_name, false, isMute)
+    end
 
-  # もしデータが空だと抜けていったチャンネルを取得
-  if channel.nil?
-    # チャンネル名を取得
-    channel_name = event.old_channel.name
-    # 退出したことをinform_channelに通知
-    bot.send_message(inform_channel, "#{user} が #{channel_name}を出たで～")
-  else
-    # チャンネル名を取得
-    channel_name = event.channel.name
-    # 入室したことをinform_channelに通知
-    bot.send_message(inform_channel, "#{user} が #{channel_name}に入ったで～")
-  end
+    channel = event.channel
+    # チャンネルデータがないときは出ていったとき
+    if channel.nil?
+        channel_name = event.old_channel.name
+        bot.send_message(inform_channel, "#{user_name} が #{channel_name}を出たで～")
+        user_state.setUserState(user_name, nil, isMute)
+    else
+        channel_name = event.channel.name
+        user_state.setUserState(user_name, channel_name, isMute)
+
+        # voiceChannelが現在のチャネルのときはすでにボイスチャネルに入ってるので通知しない
+        next if !beforeState.nil? && beforeState['voiceChannel'] == channel_name
+
+        # それ以外の時は通知する
+        bot.send_message(inform_channel, "#{user_name} が #{channel_name}に入ったで～")
+    end
 end
 
 # /deploy <branch>で起動

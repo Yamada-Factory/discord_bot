@@ -54,9 +54,9 @@ bot.voice_state_update do |event|
     channel = event.channel
     # チャンネルデータがないときは出ていったとき
     if channel.nil?
+        user_state.setUserState(user_name, nil, isMute)
         channel_name = event.old_channel.name
         bot.send_message(inform_channel, "#{user_name} が #{channel_name}を出たで～")
-        user_state.setUserState(user_name, nil, isMute)
     else
         channel_name = event.channel.name
         user_state.setUserState(user_name, channel_name, isMute)

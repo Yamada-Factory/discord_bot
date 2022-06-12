@@ -30,6 +30,6 @@ jobs:
           file: ./Dockerfile
           builder: ${{ steps.buildx.outputs.name }}
           push: true
-          tags: ${{ secrets.DOCKER_REGISTRY }}/discordbot:latest
-          cache-from: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/discordbot:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_REGISTRY }}/discordbot:buildcache,mode=max
+          tags: trompot.sakuracr.jp/discordbot:latest
+          cache-from: type=registry,ref=trompot.sakuracr.jp/discordbot:buildcache
+          cache-to: type=registry,ref=trompot.sakuracr.jp/discordbot:buildcache,mode=max

@@ -123,6 +123,11 @@ bot.command :gpt do |event, *args|
   })
 
   response = https.request(request)
+  if response.code != '200'
+    event.respond('エラーが発生しました')
+    return
+  end
+
   data = JSON.parse(response.read_body)
 
   puts '= = data = ='

@@ -99,7 +99,7 @@ bot.command :deploy do |event, branch|
   end
 end
 
-# /gptコマンドで文字列を受け取り、GPTのAPIｎを叩いて返す
+# /gptコマンドで文字列を受け取り、GPTのAPIを叩いて返す
 bot.command :gpt do |event, *args|
   break if event.channel.name != 'discord_test'
 
@@ -124,7 +124,7 @@ bot.command :gpt do |event, *args|
 
   response = https.request(request)
   if response.code != '200'
-    event.respond('エラーが発生しました')
+    event.respond('エラーが発生しました' + response.read_body)
     return
   end
 

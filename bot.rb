@@ -34,6 +34,7 @@ client_id = ENV['CLIENT_ID']
 inform_channel = ENV['INFORM_CHANNEL_ID']
 bot_user_name = ENV['BOT_NAME']
 github_token = ENV['GITHUB_TOKEN']
+openai_key = ENV['OPENAI_API_KEY']
 
 bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, prefix: '/'
 
@@ -96,6 +97,40 @@ bot.command :deploy do |event, branch|
   if response.code == '204'
     bot.send_message('738448323773595650', "devに `#{branch}`  をデプロイすんで")
   end
+end
+
+# /gptコマンドで文字列を受け取り、GPTのAPIを叩いて返す
+bot.command :gpt do |event, *args|
+  url = URI("https://api.openai.com/v1/chat/completions")
+
+  https = Net::HTTP.new(url.host, url.port)
+  https.use_ssl = true
+
+  request = Net::HTTP::Post.new(url)
+  request["Content-Type"] = "application/json"
+  request["Authorization"] = "Bearer #{openai_key}"
+  body = {
+    "model": "gpt-3.5-turbo",
+    "messages": [
+      {
+        "role": "user",
+        "content": args.join(' ')
+      }
+    ],
+    "temperature": 0.7
+  }
+  request.body = JSON.dump(body)
+
+  response = https.request(request)
+  if response.code != '200'
+    event.respond('エラーが発生しました' + response.read_body)
+    return
+  end
+
+  data = JSON.parse(response.read_body)
+
+  # discordの投稿に返信する
+  event.respond(data['choices'][0]['message']['content'])
 end
 
 bot.run

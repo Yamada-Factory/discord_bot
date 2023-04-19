@@ -2,8 +2,10 @@ name: Docker Build
 
 on:
   push:
-    branches:
-      - master
+    branches-ignore:
+      - '**'
+    tags:
+      - '*'
 
 jobs:
   push_to_registry:
@@ -13,12 +15,15 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
+      - name: Get Tags
+        run: echo "TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
+
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v4
         with:
           images: ${{ secrets.DOCKER_REGISTRY }}
-          tags: latest
+          tags: {{ env.TAG }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

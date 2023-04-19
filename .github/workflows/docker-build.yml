@@ -15,7 +15,8 @@ jobs:
       - name: Check out the repo
         uses: actions/checkout@v3
 
-      - run: |
+      - name: Get Tags
+        run: |
         echo "TAG=${GITHUB_REF#refs/tags/}" >> "$GITHUB_ENV"
 
       - name: Docker meta

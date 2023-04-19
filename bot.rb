@@ -116,7 +116,7 @@ bot.command :gpt do |event, *args|
     "messages": [
       {
         "role": "user",
-        "content": "こんにちは"
+        "content": args.join(' ')
       }
     ],
     "temperature": 0.7

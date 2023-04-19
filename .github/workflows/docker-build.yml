@@ -18,7 +18,7 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ secrets.DOCKER_REGISTRY }}
-          tags: latest
+          tags: ${GITHUB_REF#refs/tags/}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

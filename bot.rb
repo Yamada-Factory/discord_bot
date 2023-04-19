@@ -109,7 +109,7 @@ bot.command :gpt do |event, *args|
   request = Net::HTTP::Post.new(url)
   request["Content-Type"] = "application/json"
   request["Authorization"] = "Bearer #{openai_key}"
-  request.body = JSON.dump({
+  body = {
     "model": "gpt-3.5-turbo",
     "messages": [
       {
@@ -118,7 +118,8 @@ bot.command :gpt do |event, *args|
       }
     ],
     "temperature": 0.7
-  })
+  }
+  request.body = JSON.dump(body)
 
   response = https.request(request)
   if response.code != '200'
@@ -127,10 +128,6 @@ bot.command :gpt do |event, *args|
   end
 
   data = JSON.parse(response.read_body)
-
-  puts '= = data = ='
-  puts data
-  puts '= = data = ='
 
   # discordの投稿に返信する
   event.respond(data['choices'][0]['message']['content'])

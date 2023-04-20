@@ -101,6 +101,9 @@ end
 
 # /gptコマンドで文字列を受け取り、GPTのAPIを叩いて返す
 bot.command :gpt do |event, *args|
+  # 入力中イベントを送信
+  event.channel.start_typing()
+
   url = URI("https://api.openai.com/v1/chat/completions")
 
   https = Net::HTTP.new(url.host, url.port)

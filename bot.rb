@@ -35,6 +35,7 @@ inform_channel = ENV['INFORM_CHANNEL_ID']
 bot_user_name = ENV['BOT_NAME']
 github_token = ENV['GITHUB_TOKEN']
 openai_key = ENV['OPENAI_API_KEY']
+openai_key_dalle = ENV['OPENAI_API_KEY_DALLE']
 
 bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, prefix: '/'
 
@@ -148,7 +149,7 @@ bot.command :dalle do |event, *args|
 
   request = Net::HTTP::Post.new(url)
   request["Content-Type"] = "application/json"
-  request["Authorization"] = "Bearer #{openai_key}"
+  request["Authorization"] = "Bearer #{openai_key_dalle}"
   body = {
     'prompt': args.join(' '),
     'n': 1,

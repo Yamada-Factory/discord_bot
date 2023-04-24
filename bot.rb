@@ -136,4 +136,41 @@ bot.command :gpt do |event, *args|
   event.respond(data['choices'][0]['message']['content'])
 end
 
+# DalleのAPIを叩いて画像を生成する
+bot.command :dalle do |event, *args|
+  # 入力中イベントを送信
+  event.channel.start_typing()
+
+  url = URI("https://api.openai.com/v1/images/generations")
+
+  https = Net::HTTP.new(url.host, url.port)
+  https.use_ssl = true
+
+  request = Net::HTTP::Post.new(url)
+  request["Content-Type"] = "application/json"
+  request["Authorization"] = "Bearer #{openai_key}"
+  body = {
+    'prompt': args.join(' '),
+    'n': 1,
+    'size': '256x256',
+  }
+  request.body = JSON.dump(body)
+
+  response = https.request(request)
+  if response.code != '200'
+    event.respond('エラーが発生しました' + response.read_body)
+    return
+  end
+
+  data = JSON.parse(response.read_body)
+
+  # discordの投稿に返信する
+  for d in data['data'] do
+    event.respond(d['url'])
+  end
+
+  # これがないとレスポンスのJSONが送信されるためputsする
+  puts data
+end
+
 bot.run

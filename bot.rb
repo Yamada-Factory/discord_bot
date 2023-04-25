@@ -5,9 +5,23 @@ require 'dotenv'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'rmagick'
 
 # load .env
 Dotenv.load
+
+# カラーコードの画像生成
+def create_color_image(color_code, width = 25, height = 25)
+  image = Magick::Image.new(width, height) do |img|
+    img.background_color = Magick::Pixel.from_color(color_code)
+  end
+
+  filename = "./tmp/#{color_code}.png"
+
+  image.write(filename)
+
+  return filename
+end
 
 class UserState
     # 初期化
@@ -171,6 +185,20 @@ bot.command :dalle do |event, *args|
   end
 
   return
+end
+
+bot.message do |event|
+  # メッセージ内のカラーコードを検出
+  color_codes = event.content.scan(/(?<!<)#(?:[0-9a-fA-F]{3}){1,2}(?!>)/)
+
+  # カラーコードが見つかった場合、画像を生成して送信
+  color_codes.each do |color_code|
+    image_filename = create_color_image(color_code)
+    event.send_file(File.open(image_filename, 'r'), caption: color_code)
+
+    # 一時ファイルを削除
+    File.delete(image_filename)
+  end
 end
 
 bot.run

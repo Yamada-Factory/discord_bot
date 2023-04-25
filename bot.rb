@@ -170,8 +170,7 @@ bot.command :dalle do |event, *args|
     event.respond(d['url'])
   end
 
-  # これがないとレスポンスのJSONが送信されるためputsする
-  puts data
+  return
 end
 
 bot.run

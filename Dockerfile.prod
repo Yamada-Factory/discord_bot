@@ -5,5 +5,4 @@ RUN apk add --no-cache g++ make openssl
 RUN gem update --system
 RUN gem install discordrb dotenv
 COPY bot.rb bot.rb
-COPY .env .env
 CMD ["ruby", "bot.rb"]

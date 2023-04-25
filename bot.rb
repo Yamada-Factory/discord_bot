@@ -5,9 +5,17 @@ require 'dotenv'
 require 'net/http'
 require 'uri'
 require 'json'
+require 'chunky_png'
 
 # load .env
 Dotenv.load
+
+# カラーコードの画像生成
+def create_color_image(color_code, width = 50, height = 50)
+  color = ChunkyPNG::Color.from_hex(color_code)
+  image = ChunkyPNG::Image.new(width, height, color)
+  image.to_blob
+end
 
 class UserState
     # 初期化
@@ -171,6 +179,17 @@ bot.command :dalle do |event, *args|
   end
 
   return
+end
+
+bot.message do |event|
+  # メッセージ内のカラーコードを検出
+  color_codes = event.content.scan(/#(?:[0-9a-fA-F]{3}){1,2}/)
+
+  # カラーコードが見つかった場合、画像を生成して送信
+  color_codes.each do |color_code|
+    image_binary = create_color_image(color_code)
+    event.send_file(StringIO.new(image_binary), filename: "#{color_code}.png")
+  end
 end
 
 bot.run

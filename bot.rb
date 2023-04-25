@@ -23,6 +23,30 @@ def create_color_image(color_code, width = 25, height = 25)
   return filename
 end
 
+# 入力のmessageに対し、referenced_message がnilを返すまで再帰的に呼び出す
+def get_referenced_message(message, replies = [])
+  replies.unshift(message)
+  return replies if message.referenced_message.nil?
+
+  get_referenced_message(message.referenced_message, replies)
+end
+
+# 返信一覧を取得して送信するmessageを組み立てる
+def get_body_messages(message, bot)
+  replies = get_referenced_message(message)
+
+  body = []
+  replies.each do |reply|
+    role = reply.from_bot? && reply.author.username == bot.profile.name ? 'assistant' : 'user'
+    body.push({
+      'role': role,
+      'content': reply.content.gsub('/gpt ', ''),
+    })
+  end
+
+  return body
+end
+
 class UserState
     # 初期化
     def initialize
@@ -50,6 +74,7 @@ bot_user_name = ENV['BOT_NAME']
 github_token = ENV['GITHUB_TOKEN']
 openai_key = ENV['OPENAI_API_KEY']
 openai_key_dalle = ENV['OPENAI_API_KEY_DALLE']
+max_replay_length = ENV['MAX_REPLAY_LENGTH'].to_i
 
 bot = Discordrb::Commands::CommandBot.new token: token, client_id: client_id, prefix: '/'
 
@@ -127,14 +152,21 @@ bot.command :gpt do |event, *args|
   request = Net::HTTP::Post.new(url)
   request["Content-Type"] = "application/json"
   request["Authorization"] = "Bearer #{openai_key}"
+
+  body_messages = get_body_messages(event.message, bot)
+  body_messages.push({
+    "role": "user",
+    "content": args.join(' ')
+  })
+
+  if body_messages.length > max_replay_length
+    event.message.reply!("🙇 #{max_replay_length}回以上の会話はできません!!")
+    return
+  end
+
   body = {
     "model": "gpt-3.5-turbo",
-    "messages": [
-      {
-        "role": "user",
-        "content": args.join(' ')
-      }
-    ],
+    "messages": body_messages,
     "temperature": 0.7
   }
   request.body = JSON.dump(body)
@@ -148,7 +180,9 @@ bot.command :gpt do |event, *args|
   data = JSON.parse(response.read_body)
 
   # discordの投稿に返信する
-  event.respond(data['choices'][0]['message']['content'])
+  event.message.reply!(data['choices'][0]['message']['content'])
+
+  return
 end
 
 # DalleのAPIを叩いて画像を生成する

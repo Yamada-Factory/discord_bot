@@ -191,7 +191,7 @@ end
 
 bot.message do |event|
   # メッセージ内のカラーコードを検出
-  color_codes = event.content.scan(/#(?:[0-9a-fA-F]{3}){1,2}/)
+  color_codes = event.content.scan(/(?<!<)#(?:[0-9a-fA-F]{3}){1,2}(?!>)/)
 
   # カラーコードが見つかった場合、画像を生成して送信
   color_codes.each do |color_code|

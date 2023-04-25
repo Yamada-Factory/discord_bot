@@ -6,7 +6,6 @@ require 'net/http'
 require 'uri'
 require 'json'
 require 'rmagick'
-require 'digest/md5'
 
 # load .env
 Dotenv.load
@@ -17,8 +16,7 @@ def create_color_image(color_code, width = 25, height = 25)
     img.background_color = Magick::Pixel.from_color(color_code)
   end
 
-  hash = Digest::MD5.hexdigest(color_code)
-  filename = "./tmp/#{hash}.png"
+  filename = "./tmp/#{color_code}.png"
 
   image.write(filename)
 

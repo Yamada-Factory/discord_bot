@@ -5,16 +5,24 @@ require 'dotenv'
 require 'net/http'
 require 'uri'
 require 'json'
-require 'chunky_png'
+require 'rmagick'
+require 'digest/md5'
 
 # load .env
 Dotenv.load
 
 # カラーコードの画像生成
-def create_color_image(color_code, width = 50, height = 50)
-  color = ChunkyPNG::Color.from_hex(color_code)
-  image = ChunkyPNG::Image.new(width, height, color)
-  image.to_blob
+def create_color_image(color_code, width = 25, height = 25)
+  image = Magick::Image.new(width, height) do |img|
+    img.background_color = Magick::Pixel.from_color(color_code)
+  end
+
+  hash = Digest::MD5.hexdigest(color_code)
+  filename = "./tmp/#{hash}.png"
+
+  image.write(filename)
+
+  return filename
 end
 
 class UserState
@@ -187,8 +195,11 @@ bot.message do |event|
 
   # カラーコードが見つかった場合、画像を生成して送信
   color_codes.each do |color_code|
-    image_binary = create_color_image(color_code)
-    event.send_file(StringIO.new(image_binary), filename: "#{color_code}.png")
+    image_filename = create_color_image(color_code)
+    event.send_file(File.open(image_filename, 'r'), caption: color_code)
+
+    # 一時ファイルを削除
+    File.delete(image_filename)
   end
 end
 

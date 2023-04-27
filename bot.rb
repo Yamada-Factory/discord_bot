@@ -154,10 +154,6 @@ bot.command :gpt do |event, *args|
   request["Authorization"] = "Bearer #{openai_key}"
 
   body_messages = get_body_messages(event.message, bot)
-  body_messages.push({
-    "role": "user",
-    "content": args.join(' ')
-  })
 
   if body_messages.length > max_replay_length
     event.message.reply!("🙇 #{max_replay_length}回以上の会話はできません!!")

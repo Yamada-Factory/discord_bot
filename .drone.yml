@@ -3,15 +3,7 @@ type: docker
 name: build-discordbot_docker-image
 
 steps:
-  - name: build
-    image: docker:latest
-    volumes:
-      - name: dockersock
-        path: /var/run/docker.sock
-    commands:
-      - docker build -t discordbot -f Dockerfile.prod .
-
-  - name: publish
+  - name: Build & Push
     image: plugins/docker
     volumes:
       - name: dockersock
@@ -20,6 +12,7 @@ steps:
       registry: trompot.sakuracr.jp
       repo: discordbot
       tags: latest
+      dockerfile: Dockerfile.prod
       username:
         from_secret: secrets.DOCKER_USERNAME
       password:

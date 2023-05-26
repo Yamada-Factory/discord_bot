@@ -3,7 +3,7 @@ name: build-discordbot_docker-image
 
 steps:
   - name: build
-    image: docker:lastest
+    image: docker:latest
     commands:
       - docker build -t discordbot -f Dockerfile.prod .
 

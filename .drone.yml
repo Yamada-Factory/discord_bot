@@ -13,6 +13,9 @@ steps:
 
   - name: publish
     image: plugins/docker
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
     settings:
       registry: trompot.sakuracr.jp
       repo: discordbot

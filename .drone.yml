@@ -10,8 +10,9 @@ steps:
         path: /var/run/docker.sock
     settings:
       registry: trompot.sakuracr.jp
-      repo: discordbot
-      tags: latest
+      repo: trompot.sakuracr.jp/discordbot
+      tags: 
+        - latest
       dockerfile: Dockerfile.prod
       username:
         from_secret: secrets.DOCKER_USERNAME

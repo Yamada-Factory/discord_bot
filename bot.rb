@@ -148,6 +148,7 @@ bot.command :gpt do |event, *args|
 
   https = Net::HTTP.new(url.host, url.port)
   https.use_ssl = true
+  https.read_timeout = 120
 
   request = Net::HTTP::Post.new(url)
   request["Content-Type"] = "application/json"
@@ -167,16 +168,20 @@ bot.command :gpt do |event, *args|
   }
   request.body = JSON.dump(body)
 
-  response = https.request(request)
-  if response.code != '200'
-    event.respond('エラーが発生しました' + response.read_body)
-    return
+  begin
+    response = https.request(request)
+    if response.code != '200'
+      event.respond('エラーが発生しました' + response.read_body)
+      return
+    end
+
+    data = JSON.parse(response.read_body)
+
+    # discordの投稿に返信する
+    event.message.reply!(data['choices'][0]['message']['content'])
+  rescue => e
+    event.message.reply!("🚨 #{e.class} 🚨")
   end
-
-  data = JSON.parse(response.read_body)
-
-  # discordの投稿に返信する
-  event.message.reply!(data['choices'][0]['message']['content'])
 
   return
 end

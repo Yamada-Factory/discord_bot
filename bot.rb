@@ -179,8 +179,8 @@ bot.command :gpt do |event, *args|
 
     # discordの投稿に返信する
     event.message.reply!(data['choices'][0]['message']['content'])
-  rescue Net::ReadTimeout => e
-    event.message.reply!('タイムアウトエラーが発生しました')
+  rescue => e
+    event.message.reply!("🚨 #{e.class} 🚨")
   end
 
   return

@@ -148,6 +148,7 @@ bot.command :gpt do |event, *args|
 
   https = Net::HTTP.new(url.host, url.port)
   https.use_ssl = true
+  https.read_timeout = 120
 
   request = Net::HTTP::Post.new(url)
   request["Content-Type"] = "application/json"

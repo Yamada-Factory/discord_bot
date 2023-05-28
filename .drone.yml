@@ -1,0 +1,24 @@
+kind: pipeline
+type: docker
+name: build-discordbot_docker-image
+
+steps:
+  - name: Build & Push
+    image: plugins/docker
+    volumes:
+      - name: dockersock
+        path: /var/run/docker.sock
+    settings:
+      registry: trompot.sakuracr.jp
+      repo: trompot.sakuracr.jp/discordbot
+      tags: 
+        - latest
+      dockerfile: Dockerfile.prod
+      username:
+        from_secret: secrets.DOCKER_USERNAME
+      password:
+        from_secret: secrets.DOCKER_PASSWORD
+volumes:
+- name: dockersock
+  host:
+    path: /var/run/docker.sock

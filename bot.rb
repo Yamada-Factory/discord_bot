@@ -168,16 +168,20 @@ bot.command :gpt do |event, *args|
   }
   request.body = JSON.dump(body)
 
-  response = https.request(request)
-  if response.code != '200'
-    event.respond('エラーが発生しました' + response.read_body)
-    return
+  begin
+    response = https.request(request)
+    if response.code != '200'
+      event.respond('エラーが発生しました' + response.read_body)
+      return
+    end
+
+    data = JSON.parse(response.read_body)
+
+    # discordの投稿に返信する
+    event.message.reply!(data['choices'][0]['message']['content'])
+  rescue Net::ReadTimeout => e
+    event.message.reply!('タイムアウトエラーが発生しました')
   end
-
-  data = JSON.parse(response.read_body)
-
-  # discordの投稿に返信する
-  event.message.reply!(data['choices'][0]['message']['content'])
 
   return
 end

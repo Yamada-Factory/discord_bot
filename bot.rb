@@ -162,7 +162,7 @@ bot.command :gpt do |event, *args|
   end
 
   body = {
-    "model": "gpt-3.5-turbo",
+    "model": "gpt-4o-mini-2024-07-18",
     "messages": body_messages,
     "temperature": 0.7
   }
